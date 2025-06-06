@@ -2,7 +2,7 @@ package constants
 
 // # TOPICS
 const (
-	TOPIC_JOBS_EMAIL string = "JOBS-EMAIL"
+	TOPIC_EMAIL_TOPIC string = "EMAIL-TOPIC"
 )
 
 // # GROUPS

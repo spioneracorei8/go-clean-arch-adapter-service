@@ -26,6 +26,14 @@ var (
 	SERVER_READY chan bool
 
 	KAFKA_BROKER_URL string
+
+	SMTP_ADDRESS  string
+	SMTP_HOST     string
+	SMTP_PORT     int
+	SMTP_USERNAME string
+	SMTP_PASSWORD string
+
+	MAIL_SENDER_NAME string
 )
 
 var (
@@ -44,6 +52,14 @@ func init() {
 	GRPC_PORT = helper.GetENV("GRPC_PORT", "")
 	GRPC_TIMEOUT = cast.ToInt(helper.GetENV("GRPC_TIMEOUT", ""))
 	KAFKA_BROKER_URL = helper.GetENV("KAFKA_BROKER_URL", "")
+
+	SMTP_ADDRESS = helper.GetENV("SMTP_ADDRESS", "")
+	SMTP_HOST = helper.GetENV("SMTP_HOST", "")
+	SMTP_PORT = cast.ToInt(helper.GetENV("SMTP_PORT", ""))
+	SMTP_USERNAME = helper.GetENV("SMTP_USERNAME", "")
+	SMTP_PASSWORD = helper.GetENV("SMTP_PASSWORD", "")
+
+	MAIL_SENDER_NAME = helper.GetENV("MAIL_SENDER_NAME", "")
 }
 
 func GetPath(dir string) string {
@@ -62,7 +78,7 @@ func main() {
 	//==============================================================
 	// # REPOSITORIES
 	//==============================================================
-	mailRepo := _mail_repo.NewMailRepositoryImpl()
+	mailRepo := _mail_repo.NewMailRepositoryImpl(queueProducer)
 
 	//==============================================================
 	// # USECASES
@@ -77,7 +93,7 @@ func main() {
 	//==============================================================
 	// # KAFKA
 	//==============================================================
-	kafkaRoute := my_kafka.NewKafkaQueue(queueProducer, queueConsumer)
+	kafkaRoute := my_kafka.NewKafkaQueue(queueProducer, queueConsumer, SMTP_ADDRESS, SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD, MAIL_SENDER_NAME)
 	kafkaRoute.StartKafkaQueue(KAFKA_BROKER_URL)
 
 	//==============================================================

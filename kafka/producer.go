@@ -1,22 +1,26 @@
 package kafka
 
 import (
+	"adapter-service/helper"
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/segmentio/kafka-go"
 )
 
-type producer struct{}
-
-func NewQueueProducerImpl() Producer {
-	return &producer{}
+type producer struct {
+	writers map[string]*kafka.Writer
 }
 
-var Writer *kafka.Writer
+func NewQueueProducerImpl() Producer {
+	return &producer{
+		writers: make(map[string]*kafka.Writer),
+	}
+}
 
 func (p *producer) InitKafkaWriter(brokerURL, topic string) {
-	Writer = &kafka.Writer{
+	p.writers[topic] = &kafka.Writer{
 		Addr:     kafka.TCP(brokerURL),
 		Topic:    topic,
 		Balancer: &kafka.LeastBytes{},
@@ -26,11 +30,16 @@ func (p *producer) InitKafkaWriter(brokerURL, topic string) {
 	}
 }
 
-func (p *producer) PublishMessage(payload string) error {
-	msg := kafka.Message{
+func (p *producer) PublishMessage(topic, payload string) error {
+	fmt.Println(topic)
+	writer, ok := p.writers[topic]
+	if !ok {
+		return fmt.Errorf("writer for topic %s not initialized", topic)
+	}
+	msgs := kafka.Message{
+		Time:  helper.NewTimestampFromTime(time.Now()),
 		Key:   []byte(time.Now().Format(time.RFC3339)),
 		Value: []byte(payload),
 	}
-	return Writer.WriteMessages(context.Background(), msg)
-
+	return writer.WriteMessages(context.Background(), msgs)
 }

@@ -1,7 +1,6 @@
 package grpc
 
 import (
-	"adapter-service/constants"
 	"adapter-service/models"
 	"adapter-service/proto/proto_models"
 	"adapter-service/services/mail"
@@ -20,12 +19,15 @@ func NewGrpcAdapterHandlerImpl(mailUs mail.MailUsecase) proto_models.AdapterServ
 }
 
 func (g *grpcAdapterHandler) SendMail(ctx context.Context, request *proto_models.SendMailRequest) (*proto_models.SendMailResponse, error) {
+	if request == nil {
+		return nil, nil
+	}
+
 	form := &models.MailForm{
-		SenderName: constants.MAIL_SENDER_NAME,
-		To:         request.GetTo(),
-		ToName:     request.GetToName(),
-		Subject:    request.GetSubject(),
-		Body:       request.GetBody(),
+		To:      request.GetTo(),
+		ToName:  request.GetToName(),
+		Subject: request.GetSubject(),
+		Body:    request.GetBody(),
 	}
 
 	if err := g.mailUs.SendMail(ctx, form); err != nil {
